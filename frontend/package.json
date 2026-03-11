@@ -1,7 +1,7 @@
 {
   "name": "attendance-portal-frontend",
   "version": "1.0.0",
-  "description": "Frontend for School Attendance Management System",
+  "description": "Frontend for College Attendance Management System",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -23,7 +23,7 @@
     "@vitejs/plugin-react": "^4.0.3",
     "vite": "^4.4.5"
   },
-  "keywords": ["attendance", "school", "management", "react", "vite"],
-  "author": "School Management System",
+  "keywords": ["attendance", "college", "management", "system"],
+  "author": "College Management System",
   "license": "MIT"
 }

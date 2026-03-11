@@ -1,4 +1,4 @@
-# School Attendance Management System
+# College Attendance Management System
 
 A comprehensive web-based attendance management system built with Node.js, Express, React, and MongoDB. This system provides role-based access for administrators, teachers, and students to manage and track attendance efficiently.
 
@@ -182,11 +182,17 @@ attendance-portal/
 
 ### Admin
 - **Username**: admin
-- **Password**: admin123
+- **Password**: Admin@2024#Secure
 
-### Teacher & Student
-- Teachers and students need to be created by the admin
-- Use the generated Teacher ID / Roll Number to login
+### Teacher
+- **Teacher ID**: Auto-generated (first letter of first name + first letter of last name + 3 numbers, e.g., JS123, MJ456)
+- **Password**: Teacher@123 (default)
+- **Login**: Use the generated Teacher ID as login identifier
+- **Examples**: John Smith → JS123, Mary Johnson → MJ456
+
+### Student
+- Students need to be created by the admin
+- Use the generated Roll Number to login
 - Default password can be set during creation
 
 ## 📊 API Endpoints
@@ -303,7 +309,7 @@ If you encounter any issues or have questions, please:
 - [ ] Multi-language support
 - [ ] Advanced reporting with charts
 - [ ] Bulk data import/export
-- [ ] Integration with school management systems
+- [ ] Integration with college management systems
 
 ---
 

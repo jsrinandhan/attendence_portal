@@ -11,7 +11,7 @@ const teacherLogin = async (req, res) => {
     const { teacherId, password } = req.body;
 
     // Find teacher by teacherId
-    const teacher = await Teacher.findOne({ teacherId, isActive: true });
+    const teacher = await Teacher.findOne({ teacherId });
     if (!teacher) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -37,8 +37,8 @@ const teacherLogin = async (req, res) => {
         teacherId: teacher.teacherId,
         firstName: teacher.firstName,
         lastName: teacher.lastName,
-        email: teacher.email,
-        fullName: teacher.fullName,
+        phone: teacher.phone,
+        fullName: `${teacher.firstName} ${teacher.lastName}`,
         role: teacher.role,
       },
     });

@@ -47,26 +47,67 @@ const adminLogin = async (req, res) => {
   }
 };
 
+// Change Admin Password
+const changeAdminPassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const adminId = req.user.id; // From auth middleware
+
+    // Validate input
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: 'New passwords do not match' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters long' });
+    }
+
+    // Find admin
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await admin.comparePassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Update password
+    admin.password = newPassword;
+    await admin.save();
+
+    res.status(200).json({
+      message: 'Password changed successfully',
+    });
+  } catch (error) {
+    console.error('Change admin password error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 // Create Class
 const createClass = async (req, res) => {
   try {
-    const { name, grade, section, academicYear, maxStudents, classTeacher } = req.body;
+    const { grade, section } = req.body;
 
-    // Generate unique class ID
+    // Generate unique class ID and name
     const classId = generateClassId();
+    const name = `${grade} Year - Section ${section}`;
 
     const newClass = new Class({
       classId,
       name,
       grade,
       section,
-      academicYear,
-      maxStudents,
-      classTeacher,
     });
 
     await newClass.save();
-    await newClass.populate('classTeacher', 'firstName lastName email');
 
     res.status(201).json({
       message: 'Class created successfully',
@@ -84,9 +125,7 @@ const createClass = async (req, res) => {
 // Get All Classes
 const getAllClasses = async (req, res) => {
   try {
-    const classes = await Class.find({ isActive: true })
-      .populate('classTeacher', 'firstName lastName email')
-      .populate('subjects', 'name code')
+    const classes = await Class.find()
       .sort({ grade: 1, section: 1 });
 
     res.status(200).json({
@@ -103,13 +142,32 @@ const getAllClasses = async (req, res) => {
 const updateClass = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const { grade, section } = req.body;
+
+    // Check if another class with same grade and section exists
+    const existingClass = await Class.findOne({ 
+      grade, 
+      section, 
+      _id: { $ne: id } 
+    });
+
+    if (existingClass) {
+      return res.status(400).json({ 
+        message: 'A class with this grade and section already exists' 
+      });
+    }
+
+    // Generate new name if grade or section changed
+    const updateData = { grade, section };
+    if (grade || section) {
+      updateData.name = `${grade} Year - Section ${section}`;
+    }
 
     const updatedClass = await Class.findByIdAndUpdate(
       id,
       updateData,
       { new: true, runValidators: true }
-    ).populate('classTeacher', 'firstName lastName email');
+    );
 
     if (!updatedClass) {
       return res.status(404).json({ message: 'Class not found' });
@@ -121,6 +179,9 @@ const updateClass = async (req, res) => {
     });
   } catch (error) {
     console.error('Update class error:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'A class with this grade and section already exists' });
+    }
     res.status(500).json({ message: 'Internal server error' });
   }
 };
@@ -130,11 +191,7 @@ const deleteClass = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedClass = await Class.findByIdAndUpdate(
-      id,
-      { isActive: false },
-      { new: true }
-    );
+    const deletedClass = await Class.findByIdAndDelete(id);
 
     if (!deletedClass) {
       return res.status(404).json({ message: 'Class not found' });
@@ -152,7 +209,7 @@ const deleteClass = async (req, res) => {
 // Create Subject
 const createSubject = async (req, res) => {
   try {
-    const { name, code, description, type, credits, grades, totalPeriodsPerWeek } = req.body;
+    const { name, code } = req.body;
 
     // Generate unique subject ID
     const subjectId = generateSubjectId();
@@ -161,11 +218,6 @@ const createSubject = async (req, res) => {
       subjectId,
       name,
       code,
-      description,
-      type,
-      credits,
-      grades,
-      totalPeriodsPerWeek,
     });
 
     await newSubject.save();
@@ -177,7 +229,54 @@ const createSubject = async (req, res) => {
   } catch (error) {
     console.error('Create subject error:', error);
     if (error.code === 11000) {
-      return res.status(400).json({ message: 'Subject code already exists' });
+      return res.status(400).json({ message: 'Subject name or code already exists' });
+    }
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Update Subject
+const updateSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, code } = req.body;
+
+    // Check if another subject with same name or code exists
+    const existingSubject = await Subject.findOne({
+      $or: [
+        { name, _id: { $ne: id } },
+        { code, _id: { $ne: id } }
+      ]
+    });
+
+    if (existingSubject) {
+      return res.status(400).json({ 
+        message: 'A subject with this name or code already exists' 
+      });
+    }
+
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (code) updateData.code = code;
+
+    const updatedSubject = await Subject.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedSubject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    res.status(200).json({
+      message: 'Subject updated successfully',
+      subject: updatedSubject,
+    });
+  } catch (error) {
+    console.error('Update subject error:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'A subject with this name or code already exists' });
     }
     res.status(500).json({ message: 'Internal server error' });
   }
@@ -186,9 +285,7 @@ const createSubject = async (req, res) => {
 // Get All Subjects
 const getAllSubjects = async (req, res) => {
   try {
-    const subjects = await Subject.find({ isActive: true })
-      .populate('assignedTeachers', 'firstName lastName email')
-      .populate('assignedClasses', 'name grade section')
+    const subjects = await Subject.find()
       .sort({ name: 1 });
 
     res.status(200).json({
@@ -204,20 +301,18 @@ const getAllSubjects = async (req, res) => {
 // Create Teacher
 const createTeacher = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone, qualification, experience } = req.body;
+    const { firstName, lastName, phone } = req.body;
 
-    // Generate unique teacher ID
-    const teacherId = generateTeacherId();
+    // Generate unique teacher ID based on name
+    const teacherId = await generateTeacherId(firstName, lastName);
+    const password = 'Teacher@123'; // Default password
 
     const newTeacher = new Teacher({
       teacherId,
       firstName,
       lastName,
-      email,
       password,
       phone,
-      qualification,
-      experience,
     });
 
     await newTeacher.save();
@@ -229,7 +324,77 @@ const createTeacher = async (req, res) => {
   } catch (error) {
     console.error('Create teacher error:', error);
     if (error.code === 11000) {
-      return res.status(400).json({ message: 'Email already exists' });
+      return res.status(400).json({ message: 'Teacher with this name already exists' });
+    }
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Update Teacher
+const updateTeacher = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { firstName, lastName, phone } = req.body;
+
+    // Find the current teacher
+    const currentTeacher = await Teacher.findById(id);
+    if (!currentTeacher) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+
+    // Check if another teacher with same name exists
+    const existingTeacher = await Teacher.findOne({
+      firstName, 
+      lastName, 
+      _id: { $ne: id } 
+    });
+
+    if (existingTeacher) {
+      return res.status(400).json({ 
+        message: 'A teacher with this name already exists' 
+      });
+    }
+
+    const updateData = {};
+    let shouldRegenerateId = false;
+
+    // Check if name is being changed
+    if (firstName && firstName !== currentTeacher.firstName) {
+      updateData.firstName = firstName;
+      shouldRegenerateId = true;
+    }
+    if (lastName && lastName !== currentTeacher.lastName) {
+      updateData.lastName = lastName;
+      shouldRegenerateId = true;
+    }
+    if (phone) updateData.phone = phone;
+
+    // Regenerate teacher ID if name changed
+    if (shouldRegenerateId) {
+      const newTeacherId = await generateTeacherId(
+        updateData.firstName || currentTeacher.firstName,
+        updateData.lastName || currentTeacher.lastName
+      );
+      updateData.teacherId = newTeacherId;
+    }
+
+    const updatedTeacher = await Teacher.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      message: shouldRegenerateId 
+        ? 'Teacher updated successfully with new ID'
+        : 'Teacher updated successfully',
+      teacher: updatedTeacher,
+      idRegenerated: shouldRegenerateId,
+    });
+  } catch (error) {
+    console.error('Update teacher error:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'A teacher with this name already exists' });
     }
     res.status(500).json({ message: 'Internal server error' });
   }
@@ -238,9 +403,7 @@ const createTeacher = async (req, res) => {
 // Get All Teachers
 const getAllTeachers = async (req, res) => {
   try {
-    const teachers = await Teacher.find({ isActive: true })
-      .populate('assignedClasses', 'name grade section')
-      .populate('assignedSubjects', 'name code')
+    const teachers = await Teacher.find()
       .sort({ firstName: 1, lastName: 1 });
 
     res.status(200).json({
@@ -400,11 +563,11 @@ const getDashboardStats = async (req, res) => {
       totalStudents,
       activeClasses,
     ] = await Promise.all([
-      Class.countDocuments({ isActive: true }),
-      Subject.countDocuments({ isActive: true }),
-      Teacher.countDocuments({ isActive: true }),
+      Class.countDocuments(),
+      Subject.countDocuments(),
+      Teacher.countDocuments(),
       Student.countDocuments({ isActive: true }),
-      Class.countDocuments({ isActive: true, academicYear: new Date().getFullYear().toString() }),
+      Class.countDocuments({ grade: { $gte: 1, $lte: 4 } }), // Active classes are those with valid grades
     ]);
 
     res.status(200).json({
@@ -423,16 +586,61 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
+// Delete Subject
+const deleteSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedSubject = await Subject.findByIdAndDelete(id);
+
+    if (!deletedSubject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    res.status(200).json({
+      message: 'Subject deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete subject error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Delete Teacher
+const deleteTeacher = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedTeacher = await Teacher.findByIdAndDelete(id);
+
+    if (!deletedTeacher) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+
+    res.status(200).json({
+      message: 'Teacher deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete teacher error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 module.exports = {
   adminLogin,
+  changeAdminPassword,
   createClass,
   getAllClasses,
   updateClass,
   deleteClass,
   createSubject,
   getAllSubjects,
+  updateSubject,
+  deleteSubject,
   createTeacher,
   getAllTeachers,
+  updateTeacher,
+  deleteTeacher,
   createStudent,
   getAllStudents,
   assignSubjectToTeacher,

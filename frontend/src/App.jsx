@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import AttendanceMark from './pages/AttendanceMark';
-import './styles/main.css';
+import ClassesManagement from './pages/ClassesManagement';
+import TeachersManagement from './pages/TeachersManagement';
+import SubjectsManagement from './pages/SubjectsManagement';
+import ClassDetail from './pages/ClassDetail';
 
 function App() {
   const [user, setUser] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -62,13 +63,8 @@ function App() {
       {user ? (
         <>
           <Navbar user={user} onLogout={handleLogout} />
-          <Sidebar 
-            user={user} 
-            isOpen={isSidebarOpen} 
-            onClose={() => setIsSidebarOpen(false)} 
-          />
           
-          <main className={`main-content ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+          <main className="main-content">
             <Routes>
               {/* Admin Routes */}
               <Route
@@ -76,6 +72,42 @@ function App() {
                 element={
                   <ProtectedRoute requiredRole="admin">
                     <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/admin/classes"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <ClassesManagement />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/admin/subjects"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <SubjectsManagement />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/admin/teachers"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <TeachersManagement />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/admin/classes/:classId"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <ClassDetail />
                   </ProtectedRoute>
                 }
               />
@@ -171,14 +203,6 @@ function App() {
               />
             </Routes>
           </main>
-          
-          {/* Mobile menu overlay */}
-          {isSidebarOpen && (
-            <div 
-              className="mobile-menu-overlay" 
-              onClick={() => setIsSidebarOpen(false)}
-            />
-          )}
         </>
       ) : (
         <Routes>

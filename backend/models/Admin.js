@@ -31,6 +31,10 @@ const adminSchema = new mongoose.Schema({
     default: 'admin',
     enum: ['admin'],
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
 }, {
   timestamps: true,
 });

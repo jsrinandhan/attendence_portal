@@ -16,7 +16,7 @@ const classSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Grade level is required'],
     min: 1,
-    max: 12,
+    max: 4, // Updated for college years (1-4)
   },
   section: {
     type: String,
@@ -24,67 +24,12 @@ const classSchema = new mongoose.Schema({
     trim: true,
     uppercase: true,
   },
-  academicYear: {
-    type: String,
-    required: [true, 'Academic year is required'],
-    trim: true,
-  },
-  maxStudents: {
-    type: Number,
-    default: 40,
-  },
-  currentStudents: {
-    type: Number,
-    default: 0,
-  },
-  classTeacher: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Teacher',
-  },
-  subjects: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Subject',
-  }],
-  timetable: [{
-    day: {
-      type: String,
-      enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-      required: true,
-    },
-    periods: [{
-      periodNumber: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 8,
-      },
-      subject: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Subject',
-        required: true,
-      },
-      teacher: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Teacher',
-        required: true,
-      },
-      startTime: {
-        type: String,
-        required: true,
-      },
-      endTime: {
-        type: String,
-        required: true,
-      },
-    }],
-  }],
-  isActive: {
-    type: Boolean,
-    default: true,
-  },
 }, {
   timestamps: true,
 });
+
+// Create compound index for unique grade and section combinations
+classSchema.index({ grade: 1, section: 1 }, { unique: true });
 
 // Virtual for class display name
 classSchema.virtual('displayName').get(function () {

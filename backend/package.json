@@ -1,7 +1,7 @@
 {
   "name": "attendance-portal-backend",
   "version": "1.0.0",
-  "description": "Backend for School Attendance Management System",
+  "description": "Backend for College Attendance Management System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -19,7 +19,7 @@
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["attendance", "school", "management", "system"],
-  "author": "School Management System",
+  "keywords": ["attendance", "college", "management", "system"],
+  "author": "College Management System",
   "license": "MIT"
 }

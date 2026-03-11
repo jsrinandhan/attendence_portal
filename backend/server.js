@@ -47,7 +47,7 @@ app.use('/api/attendance', attendanceRoutes);
 // Root endpoint
 app.get('/', (req, res) => {
   res.status(200).json({
-    message: 'School Attendance Management System API',
+    message: 'College Attendance Management System API',
     version: '1.0.0',
     status: 'Running',
   });

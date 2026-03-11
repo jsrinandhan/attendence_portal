@@ -41,7 +41,8 @@ api.interceptors.response.use(
 // Auth services
 export const authAPI = {
   // Admin login
-  adminLogin: (credentials) => api.post('/admin/login', credentials),
+  login: (credentials) => api.post('/admin/login', credentials),
+  changePassword: (passwordData) => api.post('/admin/change-password', passwordData),
   
   // Teacher login
   teacherLogin: (credentials) => api.post('/teacher/login', credentials),
@@ -64,10 +65,14 @@ export const adminAPI = {
   // Subjects
   createSubject: (subjectData) => api.post('/admin/subjects', subjectData),
   getSubjects: () => api.get('/admin/subjects'),
+  updateSubject: (id, subjectData) => api.put(`/admin/subjects/${id}`, subjectData),
+  deleteSubject: (id) => api.delete(`/admin/subjects/${id}`),
   
   // Teachers
   createTeacher: (teacherData) => api.post('/admin/teachers', teacherData),
   getTeachers: () => api.get('/admin/teachers'),
+  updateTeacher: (id, teacherData) => api.put(`/admin/teachers/${id}`, teacherData),
+  deleteTeacher: (id) => api.delete(`/admin/teachers/${id}`),
   
   // Students
   createStudent: (studentData) => api.post('/admin/students', studentData),

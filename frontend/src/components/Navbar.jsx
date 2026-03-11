@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Menu, X, User, BookOpen, Users, BarChart3 } from 'lucide-react';
+import { LogOut, Menu, X, BookOpen, Users, BarChart3, Lock } from 'lucide-react';
+import ChangePassword from './ChangePassword';
 
 const Navbar = ({ user, onLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,21 +25,17 @@ const Navbar = ({ user, onLogout }) => {
           { path: '/admin/dashboard', label: 'Dashboard', icon: BarChart3 },
           { path: '/admin/classes', label: 'Classes', icon: Users },
           { path: '/admin/subjects', label: 'Subjects', icon: BookOpen },
-          { path: '/admin/teachers', label: 'Teachers', icon: User },
-          { path: '/admin/students', label: 'Students', icon: Users },
-          { path: '/admin/reports', label: 'Reports', icon: BarChart3 },
+          { path: '/admin/teachers', label: 'Teachers', icon: Users },
         ];
       case 'teacher':
         return [
           { path: '/teacher/dashboard', label: 'Dashboard', icon: BarChart3 },
           { path: '/teacher/mark-attendance', label: 'Mark Attendance', icon: BookOpen },
-          { path: '/teacher/reports', label: 'Reports', icon: BarChart3 },
         ];
       case 'student':
         return [
           { path: '/student/dashboard', label: 'Dashboard', icon: BarChart3 },
           { path: '/student/attendance', label: 'My Attendance', icon: BookOpen },
-          { path: '/student/reports', label: 'Reports', icon: BarChart3 },
         ];
       default:
         return [];
@@ -76,15 +74,15 @@ const Navbar = ({ user, onLogout }) => {
 
         {/* User Menu */}
         <div className="navbar-user">
-          <div className="user-info">
-            <User className="user-icon" />
-            <span className="user-name">
-              {user?.fullName || user?.firstName || 'User'}
-            </span>
-            <span className="user-role">
-              {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
-            </span>
-          </div>
+          {user?.role === 'admin' && (
+            <button 
+              onClick={() => setIsChangePasswordModalOpen(true)} 
+              className="change-password-btn"
+              title="Change Password"
+            >
+              <Lock className="lock-icon" />
+            </button>
+          )}
           <button onClick={handleLogout} className="logout-btn">
             <LogOut className="logout-icon" />
             <span>Logout</span>
@@ -120,25 +118,30 @@ const Navbar = ({ user, onLogout }) => {
               );
             })}
             
-            <div className="mobile-user-section">
-              <div className="mobile-user-info">
-                <User className="user-icon" />
-                <div>
-                  <div className="user-name">
-                    {user?.fullName || user?.firstName || 'User'}
-                  </div>
-                  <div className="user-role">
-                    {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
-                  </div>
-                </div>
-              </div>
-              <button onClick={handleLogout} className="mobile-logout-btn">
-                <LogOut className="logout-icon" />
-                <span>Logout</span>
+            {user?.role === 'admin' && (
+              <button 
+                onClick={() => {
+                  setIsChangePasswordModalOpen(true);
+                  setIsMobileMenuOpen(false);
+                }} 
+                className="mobile-change-password-btn"
+              >
+                <Lock className="nav-icon" />
+                <span>Change Password</span>
               </button>
-            </div>
+            )}
+            
+            <button onClick={handleLogout} className="mobile-logout-btn">
+              <LogOut className="logout-icon" />
+              <span>Logout</span>
+            </button>
           </div>
         </div>
+      )}
+      
+      {/* Change Password Modal */}
+      {isChangePasswordModalOpen && (
+        <ChangePassword onClose={() => setIsChangePasswordModalOpen(false)} />
       )}
     </nav>
   );

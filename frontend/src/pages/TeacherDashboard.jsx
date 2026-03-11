@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, BookOpen, BarChart3, CheckCircle, XCircle } from 'lucide-react';
 import { teacherAPI } from '../services/api';
+import '../styles/dashboard.css';
 
 const TeacherDashboard = () => {
   const [profile, setProfile] = useState(null);

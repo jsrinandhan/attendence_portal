@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, TrendingUp, BookOpen, User, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { studentAPI } from '../services/api';
+import '../styles/dashboard.css';
 
 const StudentDashboard = () => {
   const [profile, setProfile] = useState(null);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, BookOpen, CheckCircle, XCircle, Clock, Save } from 'lucide-react';
 import { teacherAPI } from '../services/api';
+import '../styles/attendance.css';
 
 const AttendanceMark = () => {
   const [assignedData, setAssignedData] = useState([]);

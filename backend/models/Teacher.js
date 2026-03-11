@@ -18,13 +18,6 @@ const teacherSchema = new mongoose.Schema({
     required: [true, 'Last name is required'],
     trim: true,
   },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
   password: {
     type: String,
     required: [true, 'Password is required'],
@@ -32,27 +25,8 @@ const teacherSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
+    required: [true, 'Phone number is required'],
     trim: true,
-  },
-  qualification: {
-    type: String,
-    trim: true,
-  },
-  experience: {
-    type: Number,
-    default: 0,
-  },
-  assignedClasses: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Class',
-  }],
-  assignedSubjects: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Subject',
-  }],
-  isActive: {
-    type: Boolean,
-    default: true,
   },
   role: {
     type: String,
@@ -62,6 +36,9 @@ const teacherSchema = new mongoose.Schema({
 }, {
   timestamps: true,
 });
+
+// Create compound index for unique full names
+teacherSchema.index({ firstName: 1, lastName: 1 }, { unique: true });
 
 // Hash password before saving
 teacherSchema.pre('save', async function (next) {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BookOpen, Eye, EyeOff, LogIn } from 'lucide-react';
 import { authAPI } from '../services/api';
+import '../styles/attendance.css';
 
 const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -54,7 +55,7 @@ const Login = ({ onLogin }) => {
       switch (formData.role) {
         case 'admin':
           credentials.username = formData.username;
-          response = await authAPI.adminLogin(credentials);
+          response = await authAPI.login(credentials);
           break;
         case 'teacher':
           credentials.teacherId = formData.teacherId;
@@ -71,6 +72,13 @@ const Login = ({ onLogin }) => {
       // Store token and user data
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response[formData.role]));
+
+      // Show success message with login credentials for teacher
+      if (formData.role === 'teacher' && response.teacher) {
+        console.log(`Teacher Login Successful!`);
+        console.log(`Teacher ID: ${response.teacher.teacherId}`);
+        console.log(`Default Password: Teacher@123`);
+      }
 
       // Call onLogin callback
       onLogin(response[formData.role]);
@@ -134,7 +142,7 @@ const Login = ({ onLogin }) => {
       <div className="login-card">
         <div className="login-header">
           <BookOpen className="login-icon" />
-          <h1>School Attendance Portal</h1>
+          <h1>College Attendance Portal</h1>
           <p>Sign in to your account</p>
         </div>
 

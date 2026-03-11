@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, BookOpen, UserCheck, GraduationCap, TrendingUp, Plus } from 'lucide-react';
 import { adminAPI } from '../services/api';
+import '../styles/dashboard.css';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -56,7 +57,7 @@ const AdminDashboard = () => {
       value: stats.totalStudents,
       icon: GraduationCap,
       color: 'orange',
-      description: 'Students enrolled',
+      description: 'Students enrolled across all classes',
     },
   ];
 
@@ -75,7 +76,7 @@ const AdminDashboard = () => {
     <div className="dashboard-container">
       <div className="dashboard-header">
         <h1>Admin Dashboard</h1>
-        <p>Manage your school's attendance system</p>
+        <p>Manage your college's attendance system</p>
       </div>
 
       {error && (
@@ -113,7 +114,7 @@ const AdminDashboard = () => {
             <Plus className="action-icon" />
             <div className="action-content">
               <h3>Add New Class</h3>
-              <p>Create a new class for students</p>
+              <p>Create a new class</p>
             </div>
           </button>
           
@@ -130,14 +131,6 @@ const AdminDashboard = () => {
             <div className="action-content">
               <h3>Add New Teacher</h3>
               <p>Register a new teacher in the system</p>
-            </div>
-          </button>
-          
-          <button className="action-card" onClick={() => window.location.href = '/admin/students'}>
-            <Plus className="action-icon" />
-            <div className="action-content">
-              <h3>Add New Student</h3>
-              <p>Enroll a new student in the school</p>
             </div>
           </button>
         </div>
